@@ -1,5 +1,6 @@
 const net = require("net");
 const fs = require("fs");
+const zlib = require('zlib'); 
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -22,7 +23,7 @@ const server = net.createServer((socket) => {
         }
         let contentType = dataObj['Content-Type'] || 'text/plain'
         const acceptEncoding = dataObj['Accept-Encoding']
-        console.log('acceptEncoding: ', acceptEncoding)
+
         if (method === 'GET') {
 
             if (path.startsWith('/files/')) {
@@ -50,6 +51,10 @@ const server = net.createServer((socket) => {
 
                 if (acceptEncoding && acceptEncoding.includes('gzip')) {
                     res += `Content-Encoding: gzip\r\n`
+                    const inputFile = fs.createReadStream(path);  
+                    const outputFile = fs.createWriteStream(path + '.gz');  
+                    resBody = inputFile.pipe(zlib.createGzip()).pipe(outputFile); 
+                    
                 } 
                 res += `Content-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
                 socket.write(res);
