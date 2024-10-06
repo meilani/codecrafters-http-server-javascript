@@ -8,6 +8,7 @@ console.log("Logs from your program will appear here!");
 const server = net.createServer((socket) => {
 
     socket.on('data', data => { 
+        data = data.toString()
         const dataArr = data.split(/[\r\n]+/)
         let req = dataArr[0].split(' ')
         let method = req[0]
@@ -51,7 +52,6 @@ const server = net.createServer((socket) => {
 
                 if (acceptEncoding && acceptEncoding.includes('gzip')) {
                     let zipBody = zlib.gzipSync(resBody)
-                    console.log(zipBody)
                     socket.write(
                         `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Encoding: gzip\r\nContent-Length: ${zipBody.length}\r\n\r\n${zipBody}`
                     );  
@@ -101,8 +101,6 @@ const server = net.createServer((socket) => {
             }
         }
     });
-
-    socket.setEncoding('utf8')
 
     socket.on("close", () => {
         socket.end();
