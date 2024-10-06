@@ -20,7 +20,7 @@ const server = net.createServer((socket) => {
             socket.write(
                 `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
             );
-        } else if (path === '/user-agent') {
+        } else if (path.startsWith('/user-agent')) {
             let resBody = dataArr[3].slice(12)
             let contentLength = resBody.length
             socket.write(
