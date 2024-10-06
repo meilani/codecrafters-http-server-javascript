@@ -12,7 +12,6 @@ const server = net.createServer((socket) => {
         let req = dataArr[0].split(' ')
         let path = req[1]
         const dataObj = {}
-        console.log(dataObj)
         for (let i = 1; i < dataArr.length; i++) {
             let newProp = dataArr[i].split(':')
             if (newProp.length == 2) {
@@ -29,6 +28,11 @@ const server = net.createServer((socket) => {
                     );
                 })
             } catch (err) {
+                if (err.code === "ENOENT") {
+                    socket.write(
+                        'HTTP/1.1 404 Not Found\r\n\r\n'
+                    );
+                } 
                 console.error(err);
             }
         } else if (path.startsWith('/echo/')) {
