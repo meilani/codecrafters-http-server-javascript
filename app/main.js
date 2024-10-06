@@ -8,11 +8,17 @@ const server = net.createServer((socket) => {
 
 
 
-    socket.on('data', data => {
+    socket.on('data', data => { 
         let path = data.split(' ')[1]
         if (path === '/') {
             socket.write(
                 'HTTP/1.1 200 OK\r\n\r\n' 
+            );
+        } else if (path.startsWith('/echo/')) {
+            console.log(res)
+            let contentLength = res.length;
+            socket.write(
+                `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${res}`
             );
         } else {
             socket.write(
@@ -25,7 +31,7 @@ const server = net.createServer((socket) => {
 
     socket.on("close", () => {
         socket.end();
-        socket.close();
+        server.close();
     });
 });
 
