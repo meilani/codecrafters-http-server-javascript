@@ -3,7 +3,6 @@ const fs = require("fs");
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
-
 // Uncomment this to pass the first stage
 const server = net.createServer((socket) => {
 
@@ -19,7 +18,8 @@ const server = net.createServer((socket) => {
             }
         }
         if (path.startsWith('/files/')) {
-            let fileName = `/tmp/${path.slice(7)}`
+            let location = process.argv[process.argv.indexOf('--directory') + 1]
+            let fileName = `${location}${path.slice(7)}`
             try {
                 const stats = fs.statSync(fileName);
                 let resBody = fs.readFile(fileName, 'utf8', function(err, data) {
