@@ -51,11 +51,11 @@ const server = net.createServer((socket) => {
 
                 if (acceptEncoding && acceptEncoding.includes('gzip')) {
                     res += `Content-Encoding: gzip\r\n`
-                    const inputFile = fs.createReadStream(path);  
-                    const outputFile = fs.createWriteStream(path + '.gz');  
-                    resBody = inputFile.pipe(zlib.createGzip()).pipe(outputFile); 
-                    
+                    fs.createReadStream(resBody)
+                      .pipe(zlib.createGzip())
+                      .pipe(fs.createWriteStream(resBody));
                 } 
+                console.log('resBody: ', resBody)
                 res += `Content-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
                 socket.write(res);
             } else if (path.startsWith('/user-agent')) {
