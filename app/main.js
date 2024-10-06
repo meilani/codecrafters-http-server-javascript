@@ -21,7 +21,7 @@ const server = net.createServer((socket) => {
             }
         }
 
-        const contentType = dataObj['Content-Type']
+        const contentType = dataObj['Content-Type'] || 'text/plain'
         const acceptEncoding = dataObj['Accept-Encoding']
 
 
