@@ -21,7 +21,6 @@ const server = net.createServer((socket) => {
                 dataObj[newProp[0].toString()] = newProp[1].trim()
             }
         }
-
         let contentType = dataObj['Content-Type'] || 'text/plain'
         const acceptEncoding = dataObj['Accept-Encoding']
 
@@ -31,6 +30,7 @@ const server = net.createServer((socket) => {
                 let fileName = `${argDirectory}${path.slice(7)}`
                 try {
                     const stats = fs.statSync(fileName);
+                    contentType = application/octet-stream
                     fs.readFile(fileName, 'utf8', function(err, data) {
                         socket.write(
                             `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Length: ${stats.size}\r\n\r\n${data}`
@@ -51,7 +51,6 @@ const server = net.createServer((socket) => {
 
                 if (acceptEncoding === 'gzip') {
                     res += `Content-Encoding: gzip\r\n`
-                    contentLength = exec(`file -b --mime-type '${path}'`);
                 } 
                 res += `Content-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
                 socket.write(res);
