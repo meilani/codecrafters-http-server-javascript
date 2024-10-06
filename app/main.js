@@ -9,7 +9,10 @@ const server = net.createServer((socket) => {
     socket.on('data', data => { 
         const dataArr = data.split(/[\r\n]+/)
         let req = dataArr[0].split(' ')
+        let method = req[0]
         let path = req[1]
+        const argDirectory = (process.argv.includes('--directory')) ? process.argv[process.argv.indexOf('--directory') + 1] : '';
+        
         const dataObj = {}
         for (let i = 1; i < dataArr.length; i++) {
             let newProp = dataArr[i].split(':')
@@ -17,44 +20,70 @@ const server = net.createServer((socket) => {
                 dataObj[newProp[0]] = newProp[1].trim()
             }
         }
-        if (path.startsWith('/files/')) {
-            let location = process.argv[process.argv.indexOf('--directory') + 1]
-            let fileName = `${location}${path.slice(7)}`
-            try {
-                const stats = fs.statSync(fileName);
-                let resBody = fs.readFile(fileName, 'utf8', function(err, data) {
-                    socket.write(
-                        `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${stats.size}\r\n\r\n${data}`
-                    );
-                })
-            } catch (err) {
-                if (err.code === "ENOENT") {
-                    socket.write(
+
+        if (method === 'GET') {
+
+            if (path.startsWith('/files/')) {
+                let fileName = `${argDirectory}${path.slice(7)}`
+                try {
+                    const stats = fs.statSync(fileName);
+                    fs.readFile(fileName, 'utf8', function(err, data) {
+                        socket.write(
+                            `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${stats.size}\r\n\r\n${data}`
+                        );
+                    })
+                } catch (err) {
+                    if (err.code === "ENOENT") {
+                        socket.write(
                         'HTTP/1.1 404 Not Found\r\n\r\n'
-                    );
-                } 
-                console.error(err);
+                        );
+                    } 
+                    console.error(err);
+                }
+            } else if (path.startsWith('/echo/')) {
+                let resBody = path.slice(6);
+                let contentLength = resBody.length;
+                socket.write(
+                    `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
+                );
+            } else if (path.startsWith('/user-agent')) {
+                let resBody = dataObj['User-Agent']
+                let contentLength = resBody.length
+                socket.write(
+                    `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
+                );
+            }   else if (path === '/') {
+                socket.write(
+                    'HTTP/1.1 200 OK\r\n\r\n' 
+                );
+            }  else {
+                socket.write(
+                    'HTTP/1.1 404 Not Found\r\n\r\n'
+                );
             }
-        } else if (path.startsWith('/echo/')) {
-            let resBody = path.slice(6);
-            let contentLength = resBody.length;
-            socket.write(
-                `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
-            );
-        } else if (path.startsWith('/user-agent')) {
-            let resBody = dataObj['User-Agent']
-            let contentLength = resBody.length
-            socket.write(
-                `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
-            );
-        }   else if (path === '/') {
-            socket.write(
-                'HTTP/1.1 200 OK\r\n\r\n' 
-            );
-        }  else {
-            socket.write(
-                'HTTP/1.1 404 Not Found\r\n\r\n'
-            );
+        } else if (method === 'POST') {
+            if (path.startsWith('/files/')) {
+                let fileName = `${argDirectory}${path.slice(7)}`
+                let reqBody = dataArr[dataArr.length-1]
+                try {
+                    fs.writeFile(fileName, reqBody, (err) => {
+                        if (err)
+                          console.log(err);
+                        else {
+                          socket.write(
+                            'HTTP/1.1 201 Created\r\n\r\n'
+                          );
+                        }
+                    });
+                } catch (err) {
+                    if (err.code === "ENOENT") {
+                        socket.write(
+                        'HTTP/1.1 404 Not Found\r\n\r\n'
+                        );
+                    } 
+                    console.error(err);
+                }
+            }
         }
     });
 
