@@ -1,6 +1,5 @@
 const net = require("net");
 const fs = require("fs");
-const exec = require('child_process').exec;
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -49,7 +48,7 @@ const server = net.createServer((socket) => {
                 let contentLength = resBody.length;
                 let res = `HTTP/1.1 200 OK\r\n`
 
-                if (acceptEncoding === 'gzip') {
+                if (acceptEncoding.includes('gzip')) {
                     res += `Content-Encoding: gzip\r\n`
                 } 
                 res += `Content-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
