@@ -48,13 +48,13 @@ const server = net.createServer((socket) => {
             } else if (path.startsWith('/echo/')) {
                 let resBody = path.slice(6);
                 let contentLength = resBody.length;
-                let res = `HTTP/1.1 200 OK\r\n`
 
                 if (acceptEncoding && acceptEncoding.includes('gzip')) {
                     let zipBody = zlib.gzipSync(resBody)
                     socket.write(
-                        `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Encoding: gzip\r\nContent-Length: ${zipBody.length}\r\n\r\n${zipBody}`
+                        `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Encoding: gzip\r\nContent-Length: ${zipBody.length}\r\n\r\n`
                     );  
+                    socket.write(zipBody)
                                     
                 } else {
                     socket.write(
