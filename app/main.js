@@ -50,16 +50,12 @@ const server = net.createServer((socket) => {
                 let res = `HTTP/1.1 200 OK\r\n`
 
                 if (acceptEncoding && acceptEncoding.includes('gzip')) {
-                    zlib.gzip(resBody, (err,buffer) => {
-                        if (!err) {
-
-                            socket.write(
-                                `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Encoding: gzip\r\nContent-Length: ${contentLength}\r\n\r\n${buffer}`
-                            );
-                        } else {
-                            console.error(err)
-                        }
-                    })
+                    let zipBody = zlib.gzipSync(resBody)
+                    console.log(zipBody)
+                    socket.write(
+                        `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Encoding: gzip\r\nContent-Length: ${zipBody.length}\r\n\r\n${zipBody}`
+                    );  
+                                    
                 } else {
                     socket.write(
                         `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
