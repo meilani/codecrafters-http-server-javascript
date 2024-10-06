@@ -50,14 +50,20 @@ const server = net.createServer((socket) => {
                 let res = `HTTP/1.1 200 OK\r\n`
 
                 if (acceptEncoding && acceptEncoding.includes('gzip')) {
-                    res += `Content-Encoding: gzip\r\n`
-                    fs.createReadStream(resBody)
-                      .pipe(zlib.createGzip())
-                      .pipe(fs.createWriteStream(resBody));
-                } 
-                console.log('resBody: ', resBody)
-                res += `Content-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
-                socket.write(res);
+                    zlib.gzip(resBody, (err,buffer) => {
+                        if (!err) {
+                            socket.write(
+                                `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Encoding: gzip\r\nContent-Length: ${contentLength}\r\n\r\n${buffer}`
+                            );
+                        } else {
+                            console.error(err)
+                        }
+                    })
+                } else {
+                    socket.write(
+                        `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
+                    );
+                }
             } else if (path.startsWith('/user-agent')) {
                 let resBody = dataObj['User-Agent']
                 let contentLength = resBody.length
