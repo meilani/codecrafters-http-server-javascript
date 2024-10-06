@@ -6,8 +6,6 @@ console.log("Logs from your program will appear here!");
 // Uncomment this to pass the first stage
 const server = net.createServer((socket) => {
 
-
-
     socket.on('data', data => { 
         const dataArr = data.split(/[\r\n]+/)
         let req = dataArr[0].split(' ')
