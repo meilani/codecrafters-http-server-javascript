@@ -1,5 +1,6 @@
 const net = require("net");
 const fs = require("fs");
+const exec = require('child_process').exec;
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -21,9 +22,8 @@ const server = net.createServer((socket) => {
             }
         }
 
-        const contentType = dataObj['Content-Type'] || 'text/plain'
+        let contentType = dataObj['Content-Type'] || 'text/plain'
         const acceptEncoding = dataObj['Accept-Encoding']
-
 
         if (method === 'GET') {
 
@@ -47,11 +47,13 @@ const server = net.createServer((socket) => {
             } else if (path.startsWith('/echo/')) {
                 let resBody = path.slice(6);
                 let contentLength = resBody.length;
-                let res = `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\n`
+                let res = `HTTP/1.1 200 OK\r\n`
+
                 if (acceptEncoding === 'gzip') {
                     res += `Content-Encoding: gzip\r\n`
+                    contentLength = exec(`file -b --mime-type '${path}'`);
                 } 
-                res += `Content-Length: ${contentLength}\r\n\r\n${resBody}`
+                res += `Content-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
                 socket.write(res);
             } else if (path.startsWith('/user-agent')) {
                 let resBody = dataObj['User-Agent']
@@ -75,7 +77,7 @@ const server = net.createServer((socket) => {
                 try {
                     fs.writeFile(fileName, reqBody, (err) => {
                         if (err)
-                          console.log(err);
+                          console.error(err);
                         else {
                           socket.write(
                             'HTTP/1.1 201 Created\r\n\r\n'
