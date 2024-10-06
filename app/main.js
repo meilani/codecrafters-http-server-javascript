@@ -10,11 +10,8 @@ const server = net.createServer((socket) => {
         const dataArr = data.split(/[\r\n]+/)
         let req = dataArr[0].split(' ')
         let path = req[1]
-        if (path === '/') {
-            socket.write(
-                'HTTP/1.1 200 OK\r\n\r\n' 
-            );
-        } else if (path.startsWith('/echo/')) {
+
+        if (path.startsWith('/echo/')) {
             let resBody = path.slice(6);
             let contentLength = res.length;
             socket.write(
@@ -26,14 +23,16 @@ const server = net.createServer((socket) => {
             socket.write(
                 `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
             );
-        } else {
+        }   else if (path === '/') {
+            socket.write(
+                'HTTP/1.1 200 OK\r\n\r\n' 
+            );
+        }  else {
             socket.write(
                 'HTTP/1.1 404 Not Found\r\n\r\n'
             );
         }
     });
-
-    socket.setEncoding('utf8')
 
     socket.on("close", () => {
         socket.end();
