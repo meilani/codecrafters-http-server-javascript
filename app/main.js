@@ -30,7 +30,7 @@ const server = net.createServer((socket) => {
                 let fileName = `${argDirectory}${path.slice(7)}`
                 try {
                     const stats = fs.statSync(fileName);
-                    contentType = application/octet-stream
+                    contentType = "application/octet-stream"
                     fs.readFile(fileName, 'utf8', function(err, data) {
                         socket.write(
                             `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Length: ${stats.size}\r\n\r\n${data}`
