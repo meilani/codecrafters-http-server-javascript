@@ -17,9 +17,13 @@ const server = net.createServer((socket) => {
         for (let i = 1; i < dataArr.length; i++) {
             let newProp = dataArr[i].split(':')
             if (newProp.length == 2) {
-                dataObj[newProp[0]] = newProp[1].trim()
+                dataObj[newProp[0].toString()] = newProp[1].trim()
             }
         }
+
+        const contentType = dataObj['Content-Type']
+        const acceptEncoding = dataObj['Accept-Encoding']
+
 
         if (method === 'GET') {
 
@@ -29,7 +33,7 @@ const server = net.createServer((socket) => {
                     const stats = fs.statSync(fileName);
                     fs.readFile(fileName, 'utf8', function(err, data) {
                         socket.write(
-                            `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${stats.size}\r\n\r\n${data}`
+                            `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Length: ${stats.size}\r\n\r\n${data}`
                         );
                     })
                 } catch (err) {
@@ -43,14 +47,17 @@ const server = net.createServer((socket) => {
             } else if (path.startsWith('/echo/')) {
                 let resBody = path.slice(6);
                 let contentLength = resBody.length;
-                socket.write(
-                    `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
-                );
+                let res = `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\n`
+                if (acceptEncoding === 'gzip') {
+                    res += `Content-Encoding: gzip\r\n`
+                } 
+                res += `Content-Length: ${contentLength}\r\n\r\n${resBody}`
+                socket.write(res);
             } else if (path.startsWith('/user-agent')) {
                 let resBody = dataObj['User-Agent']
                 let contentLength = resBody.length
                 socket.write(
-                    `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
+                    `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
                 );
             }   else if (path === '/') {
                 socket.write(
