@@ -9,16 +9,24 @@ const server = net.createServer((socket) => {
 
 
     socket.on('data', data => { 
-        let path = data.split(' ')[1]
+        const dataArr = data.split(/[\r\n]+/)
+        let req = dataArr[0].split(' ')
+        let path = req[1]
         if (path === '/') {
             socket.write(
                 'HTTP/1.1 200 OK\r\n\r\n' 
             );
         } else if (path.startsWith('/echo/')) {
-            let res = path.slice(6);
+            let resBody = path.slice(6);
             let contentLength = res.length;
             socket.write(
-                `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${res}`
+                `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
+            );
+        } else if (path === '/user-agent') {
+            let resBody = dataArr[3].slice(12)
+            let contentLength = resBody.length
+            socket.write(
+                `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
             );
         } else {
             socket.write(
