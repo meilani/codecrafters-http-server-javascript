@@ -10,6 +10,13 @@ const server = net.createServer((socket) => {
         const dataArr = data.split(/[\r\n]+/)
         let req = dataArr[0].split(' ')
         let path = req[1]
+        const dataObj = {}
+        for (let i = 1; i < dataArr.length; i++) {
+            let newProp = dataArr[i].split(':')
+            if (newProp.length == 2) {
+                dataObj[newProp[0]] = newProp[1].trim()
+            }
+        }
 
         if (path.startsWith('/echo/')) {
             let resBody = path.slice(6);
@@ -18,7 +25,7 @@ const server = net.createServer((socket) => {
                 `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
             );
         } else if (path.startsWith('/user-agent')) {
-            let resBody = dataArr[3].slice(12)
+            let resBody = dataObj['User-Agent']
             let contentLength = resBody.length
             socket.write(
                 `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
@@ -33,6 +40,8 @@ const server = net.createServer((socket) => {
             );
         }
     });
+
+    socket.setEncoding('utf8')
 
     socket.on("close", () => {
         socket.end();
