@@ -22,7 +22,7 @@ const server = net.createServer((socket) => {
         }
         let contentType = dataObj['Content-Type'] || 'text/plain'
         const acceptEncoding = dataObj['Accept-Encoding']
-
+        console.log('acceptEncoding: ', acceptEncoding)
         if (method === 'GET') {
 
             if (path.startsWith('/files/')) {
@@ -48,7 +48,7 @@ const server = net.createServer((socket) => {
                 let contentLength = resBody.length;
                 let res = `HTTP/1.1 200 OK\r\n`
 
-                if (acceptEncoding.includes('gzip')) {
+                if (acceptEncoding && acceptEncoding.includes('gzip')) {
                     res += `Content-Encoding: gzip\r\n`
                 } 
                 res += `Content-Type: ${contentType}\r\nContent-Length: ${contentLength}\r\n\r\n${resBody}`
