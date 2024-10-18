@@ -1,6 +1,21 @@
 const net = require("net");
 const fs = require("fs");
 const zlib = require('zlib'); 
+const pathN = require('path');
+
+function sanitizePath (url, baseDir) {
+    url = url.replace(/%2e/ig, '.')
+    url = url.replace(/%2f/ig, '/')
+    url = url.replace(/%5c/ig, '\\')
+    url = url.replace(/^[\/\\]?/, '/')
+    url = url.replace(/[\/\\]\.\.[\/\\]/, '/')
+
+    url = pathN.normalize(url).replace(/\\/g, '/')
+
+    if (!url.startsWith(baseDir)) return false;
+
+    return url;
+}
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -12,7 +27,7 @@ const server = net.createServer((socket) => {
         const dataArr = data.split(/[\r\n]+/)
         let req = dataArr[0].split(' ')
         let method = req[0]
-        let path = req[1]
+        let path = pathN.normalize(req[1])
         const argDirectory = (process.argv.includes('--directory')) ? process.argv[process.argv.indexOf('--directory') + 1] : '';
         
         const dataObj = {}
@@ -28,10 +43,12 @@ const server = net.createServer((socket) => {
         if (method === 'GET') {
 
             if (path.startsWith('/files/')) {
-                let fileName = `${argDirectory}${path.slice(7)}`
+                
                 try {
+                    let fileName = sanitizePath(`${argDirectory}${path.slice(7)}`, '/tmp')
                     const stats = fs.statSync(fileName);
                     contentType = "application/octet-stream"
+
                     fs.readFile(fileName, 'utf8', function(err, data) {
                         socket.write(
                             `HTTP/1.1 200 OK\r\nContent-Type: ${contentType}\r\nContent-Length: ${stats.size}\r\n\r\n${data}`
@@ -78,10 +95,10 @@ const server = net.createServer((socket) => {
             }
         } else if (method === 'POST') {
             if (path.startsWith('/files/')) {
-                let fileName = `${argDirectory}${path.slice(7)}`
+                let fileName = sanitizePath(`${argDirectory}${path.slice(7)}`, '/tmp')
                 let reqBody = dataArr[dataArr.length-1]
                 try {
-                    fs.writeFile(fileName, reqBody, (err) => {
+                    fs.writeFile(pathN.normalize(fileName), reqBody, (err) => {
                         if (err)
                           console.error(err);
                         else {
